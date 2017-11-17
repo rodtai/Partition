@@ -3,14 +3,6 @@
 using namespace std;
 typedef unsigned long long ULL;
 typedef vector<int> VI;
-VI part_k(int n, ULL k);
-ULL part_q(int n){
-    if(n==1) return 1;
-    ULL k = 1;
-    ULL partK = part_k(n,k).size();
-    while(n!=partK){partK= part_k(n,k++);}
-    return k;
-}
 void printVector(VI& input){
     for(int i:input){
         cout<<i<<" ";
@@ -31,43 +23,54 @@ void pushVector(VI& input,const VI& appended, int start, int end){
 
 VI part_k(int n, ULL k){
     if(!k){
-        VI part({n});
-        return part;
+        VI current({n});
     }
     else{
-        VI prev = part_k(n,k-1);
         VI current;
-        if(!decFirstNum(prev)){
-            current.push_back(--prev[0]);
-            int complement = n-current[0];
-            if(complement<current[0]) current.push_back(complement);
-            else{
-                int times = complement/current[0];
-                int remainder = complement%current[0];
-                VI appended(times,current[0]);
-                if(remainder!=0) appended.push_back(remainder);
-                pushVector(current,appended,0,appended.size());
+        VI prev = part_k(n,k-1);
+        if(decFirstNum(prev)){
+            int first = --prev[0];
+            current.push_back(first);
+            int complement = n - first;
+            if(complement>first){
+                int k = 1;
+                VI appendage = part_k(complement,k);
+                while(appendage[0]!=complement){
+                    appendage = part_k(complement,++k);
+                }
+                pushVector(current,appendage,0,appendage.size());
+                return current;
             }
+            else{
+            current.push_back(complement);
             return current;
+            }
         }
         else{
-            int toExpand = decFirstNum(prev);
-            VI firstHalf;
-            VI secondHalf;
-            int midVal = prev[toExpand];
-            pushVector(firstHalf,prev,0,toExpand);
-            pushVector(secondHalf,prev,toExpand+1,prev.size());
-
-            VI midexp = part_k(midVal,1);
-            pushVector(firstHalf,midexp,0,midexp.size());
-            pushVector(firstHalf,secondHalf,0,secondHalf.size());
-            return firstHalf;
+            if(prev[prev.size()-2]!=1 && prev.back()==1){
+                int sum = prev[prev.size()-2] + prev.back();
+                VI appendage({sum-2,2});
+                VI part;
+                pushVector(part, prev, 0, prev.size()-2);
+                pushVector(part,appendage,0,appendage.size());
+                return part;
+            }
+            else{
+                int index = decFirstNum(prev);
+                VI appendage({prev[index]-1,1});
+                VI firstPart, lastPart;
+                pushVector(firstPart,prev,0,index);
+                pushVector(lastPart,prev,index+1,prev.size()-1);
+                pushVector(firstPart,appendage,0,appendage.size());
+                pushVector(firstPart,lastPart,0,lastPart.size());
+                return firstPart;
+            }
         }
     }
 }
 int main(){
-    for(int i = 0; i < 200; i++){
-        VI test = part_k(420,i);
+    for(int i = 0; i < 1; i++){
+        VI test = part_k(7,i);
         for(int i : test){
             cout<<i<<" ";
         }
